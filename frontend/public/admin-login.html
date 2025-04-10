@@ -1,0 +1,56 @@
+<!-- admin-login.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login Administrador</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+  <nav class="bg-blue-700 text-white p-4 shadow-md">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <h1 class="text-xl font-bold">🕒 Coberturas Docentes</h1>
+      <ul class="flex gap-4 text-sm">
+        <li><a href="index.html" class="hover:underline">Inicio</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="flex-grow flex items-center justify-center p-6">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+      <h1 class="text-2xl font-bold mb-6 text-center text-blue-700">Login Administrador</h1>
+      <form id="admin-form" class="space-y-4">
+        <input type="text" id="dni" placeholder="DNI" required class="w-full p-2 border rounded" />
+        <input type="password" id="clave" placeholder="Contraseña" required class="w-full p-2 border rounded" />
+        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Ingresar</button>
+      </form>
+      <p id="respuesta" class="mt-4 text-center font-semibold"></p>
+    </div>
+  </main>
+
+  <script>
+    document.getElementById('admin-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const dni = document.getElementById('dni').value;
+      const clave = document.getElementById('clave').value;
+
+      const res = await fetch('http://localhost:3001/admin-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dni, clave })
+      });
+
+      const data = await res.json();
+      const msg = document.getElementById('respuesta');
+
+      if (data.ok) {
+        localStorage.setItem('adminAutenticado', 'true');
+        window.location.href = 'admin.html';
+      } else {
+        msg.textContent = '❌ Acceso denegado.';
+        msg.className = 'text-red-600 mt-4 text-center';
+      }
+    });
+  </script>
+</body>
+</html>

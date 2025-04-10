@@ -1,0 +1,69 @@
+<!-- admin.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Panel del Administrador - Reportar Faltas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+  <nav class="bg-blue-700 text-white p-4 shadow-md">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <h1 class="text-xl font-bold">🕒 Coberturas Docentes</h1>
+      <ul class="flex gap-4 text-sm">
+        <li><a href="index.html" class="hover:underline">Inicio</a></li>
+        <li><a href="registro.html" class="hover:underline">Registro</a></li>
+        <li><a href="login.html" class="hover:underline">Login</a></li>
+        <li><a href="horario.html" class="hover:underline">Horario</a></li>
+        <li><a href="alertas.html" class="hover:underline">Alertas</a></li>
+        <li><a href="admin.html" class="hover:underline text-yellow-300">Admin</a></li>
+        <li><a href="admin-coberturas.html" class="hover:underline text-yellow-300">Coberturas</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="flex-grow flex items-center justify-center p-6">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-lg">
+      <h1 class="text-2xl font-bold mb-6 text-center text-blue-700">Reportar Falta de Docente</h1>
+      <form id="falta-form" class="space-y-4">
+        <select id="dia" required class="w-full p-2 border rounded">
+          <option value="">Día</option>
+          <option value="Lu">Lunes</option>
+          <option value="Ma">Martes</option>
+          <option value="Mi">Miércoles</option>
+          <option value="Ju">Jueves</option>
+          <option value="Vi">Viernes</option>
+        </select>
+        <input type="number" id="hora" min="1" max="9" placeholder="Hora (1 a 9)" required class="w-full p-2 border rounded"/>
+        <input type="text" id="curso" placeholder="Curso" required class="w-full p-2 border rounded"/>
+        <input type="text" id="materia" placeholder="Materia" required class="w-full p-2 border rounded"/>
+        <input type="text" id="docente" placeholder="Docente que falta" required class="w-full p-2 border rounded"/>
+        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Reportar Falta</button>
+      </form>
+      <p id="respuesta" class="mt-4 text-center font-semibold"></p>
+    </div>
+  </main>
+
+  <script>
+    document.getElementById('falta-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const falta = {
+        dia: document.getElementById('dia').value,
+        hora: parseInt(document.getElementById('hora').value),
+        curso: document.getElementById('curso').value,
+        materia: document.getElementById('materia').value,
+        docente_faltante: document.getElementById('docente').value
+      };
+      const res = await fetch('http://localhost:3001/reportar-falta', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(falta)
+      });
+      const data = await res.json();
+      const msg = document.getElementById('respuesta');
+      msg.textContent = data.ok ? '✅ Falta reportada correctamente.' : '❌ ' + data.error;
+      msg.className = data.ok ? 'text-green-600' : 'text-red-600';
+    });
+  </script>
+</body>
+</html>

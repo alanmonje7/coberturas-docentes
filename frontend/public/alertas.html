@@ -1,0 +1,151 @@
+<!-- alertas.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Alertas de Faltas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+  <nav class="bg-blue-700 text-white p-4 shadow-md">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <h1 class="text-xl font-bold">🕒 Coberturas Docentes</h1>
+      <ul class="flex gap-4 text-sm">
+        <li><a href="index.html" class="hover:underline">Inicio</a></li>
+        <li><a href="registro.html" class="hover:underline">Registro</a></li>
+        <li><a href="login.html" class="hover:underline">Login</a></li>
+        <li><a href="horario.html" class="hover:underline">Horario</a></li>
+        <li><a href="alertas.html" class="hover:underline">Alertas</a></li>
+        <li><a href="admin.html" class="hover:underline text-yellow-300">Admin</a></li>
+        <li><a href="admin-coberturas.html" class="hover:underline text-yellow-300">Coberturas</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="flex-grow p-6">
+    <div class="max-w-5xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+      <h1 class="text-2xl font-bold text-center text-blue-700 mb-6">Faltas Reportadas – ¿Podés cubrir?</h1>
+
+      <form id="dni-form" class="flex flex-col md:flex-row gap-4 justify-center items-center mb-6">
+        <input type="text" id="dni" placeholder="Ingresá tu DNI" required
+               class="p-2 border rounded w-full md:w-1/3" />
+        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+          Ver alertas
+        </button>
+      </form>
+
+      <div id="alertas" class="overflow-x-auto"></div>
+    </div>
+  </main>
+
+  <!-- Modal personalizada -->
+  <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-lg shadow-lg max-w-md text-center">
+      <h2 class="text-xl font-bold text-blue-700 mb-4">📢 ¡Cobertura disponible!</h2>
+      <p id="modal-mensaje" class="text-gray-700"></p>
+      <button onclick="cerrarModal()" class="mt-6 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        Cerrar
+      </button>
+    </div>
+  </div>
+
+  <script>
+    let docenteId = null;
+
+    function mostrarModal(mensaje) {
+      document.getElementById('modal-mensaje').innerText = mensaje;
+      document.getElementById('modal').classList.remove('hidden');
+    }
+
+    function cerrarModal() {
+      document.getElementById('modal').classList.add('hidden');
+    }
+
+    document.getElementById('dni-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const dni = document.getElementById('dni').value;
+
+      const loginRes = await fetch('http://localhost:3001/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dni })
+      });
+      const loginData = await loginRes.json();
+      if (!loginData.docente) {
+        document.getElementById('alertas').innerText = 'DNI no válido.';
+        return;
+      }
+      docenteId = loginData.docente.id;
+
+      // Ver sugerencias de cobertura
+      const sugerenciaRes = await fetch(`http://localhost:3001/coberturas-sugeridas/${dni}`);
+      const sugerencias = await sugerenciaRes.json();
+
+      if (sugerencias.sugerencias.length) {
+        const alerta = sugerencias.sugerencias[0];
+        const mensaje = `Curso: ${alerta.curso} - Materia: ${alerta.materia}\nDía: ${alerta.dia} - Hora: ${alerta.hora}`;
+        mostrarModal(mensaje);
+      }
+
+      // Obtener alertas disponibles
+      const res = await fetch('http://localhost:3001/alertas-disponibles');
+      const data = await res.json();
+
+      if (!data.alertas.length) {
+        document.getElementById('alertas').innerText = 'No hay alertas activas por el momento.';
+        return;
+      }
+
+      let tabla = `
+        <table class="w-full table-auto border-collapse">
+          <thead>
+            <tr class="bg-blue-100">
+              <th class="p-2 border">Día</th>
+              <th class="p-2 border">Hora</th>
+              <th class="p-2 border">Curso</th>
+              <th class="p-2 border">Materia</th>
+              <th class="p-2 border">Docente que falta</th>
+              <th class="p-2 border">Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      data.alertas.forEach(alerta => {
+        tabla += `
+          <tr class="hover:bg-gray-100">
+            <td class="p-2 border">${alerta.dia}</td>
+            <td class="p-2 border">${alerta.hora}</td>
+            <td class="p-2 border">${alerta.curso}</td>
+            <td class="p-2 border">${alerta.materia}</td>
+            <td class="p-2 border">${alerta.docente_faltante}</td>
+            <td class="p-2 border">
+              <button class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700"
+                      onclick="aceptarCobertura(${alerta.id})">Aceptar</button>
+            </td>
+          </tr>
+        `;
+      });
+
+      tabla += `</tbody></table>`;
+      document.getElementById('alertas').innerHTML = tabla;
+    });
+
+    async function aceptarCobertura(alertaId) {
+      const res = await fetch('http://localhost:3001/confirmar-cobertura', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ alerta_id: alertaId, docente_id: docenteId })
+      });
+
+      const data = await res.json();
+      if (data.ok) {
+        alert('✅ Cobertura aceptada correctamente.');
+        window.location.reload();
+      } else {
+        alert('❌ Error: ' + data.error);
+      }
+    }
+  </script>
+</body>
+</html>

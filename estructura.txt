@@ -1,0 +1,17 @@
+/horas-libres-docentes/
+│
+├── backend/
+│   ├── db.sqlite          ← base de datos local
+│   ├── server.js          ← servidor Express
+│   └── routes/            ← API por módulos
+│
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   └── App.jsx
+│   └── tailwind.config.js
+│
+├── .gitignore
+└── README.md

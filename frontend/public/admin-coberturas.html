@@ -1,0 +1,98 @@
+<!-- admin-coberturas.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Listado de Faltas y Coberturas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+  <nav class="bg-blue-700 text-white p-4 shadow-md">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <h1 class="text-xl font-bold">🕒 Coberturas Docentes</h1>
+      <ul class="flex gap-4 text-sm">
+        <li><a href="index.html" class="hover:underline">Inicio</a></li>
+        <li><a href="registro.html" class="hover:underline">Registro</a></li>
+        <li><a href="login.html" class="hover:underline">Login</a></li>
+        <li><a href="horario.html" class="hover:underline">Horario</a></li>
+        <li><a href="alertas.html" class="hover:underline">Alertas</a></li>
+        <li><a href="admin.html" class="hover:underline text-yellow-300">Admin</a></li>
+        <li><a href="admin-coberturas.html" class="hover:underline text-yellow-300">Coberturas</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="flex-grow p-6">
+    <div class="max-w-6xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+      <h1 class="text-2xl font-bold text-center text-blue-700 mb-6">Faltas Reportadas y Coberturas</h1>
+
+      <div id="listado" class="overflow-x-auto"></div>
+    </div>
+  </main>
+
+  <script>
+    async function cargarCoberturas() {
+      const res = await fetch('http://localhost:3001/alertas-todas');
+      const data = await res.json();
+
+      if (!data.alertas.length) {
+        document.getElementById('listado').innerText = 'No hay faltas registradas.';
+        return;
+      }
+
+      let tabla = `
+        <table class="w-full table-auto border-collapse">
+          <thead>
+            <tr class="bg-blue-100">
+              <th class="p-2 border">Día</th>
+              <th class="p-2 border">Hora</th>
+              <th class="p-2 border">Curso</th>
+              <th class="p-2 border">Materia</th>
+              <th class="p-2 border">Docente que falta</th>
+              <th class="p-2 border">Cubierta por</th>
+              <th class="p-2 border">Estado</th>
+              <th class="p-2 border">Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      data.alertas.forEach(alerta => {
+        const cubierta = alerta.cubierta_por_nombre ? 'bg-green-100' : 'bg-red-100';
+        tabla += `
+          <tr class="${cubierta}">
+            <td class="border p-2">${alerta.dia}</td>
+            <td class="border p-2">${alerta.hora}</td>
+            <td class="border p-2">${alerta.curso}</td>
+            <td class="border p-2">${alerta.materia}</td>
+            <td class="border p-2">${alerta.docente_faltante}</td>
+            <td class="border p-2">${alerta.cubierta_por_nombre || '-'}</td>
+            <td class="border p-2 font-semibold">${alerta.cubierta_por_nombre ? '✅ Cubierta' : '❌ Pendiente'}</td>
+            <td class="border p-2 text-center">
+              <button onclick="eliminarAlerta(${alerta.id})" class="text-red-600 hover:underline">🗑</button>
+            </td>
+          </tr>
+        `;
+      });
+
+      tabla += `</tbody></table>`;
+      document.getElementById('listado').innerHTML = tabla;
+    }
+
+    async function eliminarAlerta(id) {
+  if (!confirm('¿Seguro que querés eliminar esta alerta?')) return;
+  const res = await fetch(`http://localhost:3001/alerta/${id}`, {
+    method: 'DELETE'
+  });
+  const data = await res.json();
+  console.log("Eliminando alerta con ID:", id);
+  console.log("Respuesta del servidor:", data);
+  if (data.ok) cargarCoberturas();
+  else alert('❌ No se pudo eliminar.');
+}
+
+
+    cargarCoberturas();
+  </script>
+</body>
+</html>

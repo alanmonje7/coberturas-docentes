@@ -1,0 +1,81 @@
+<!-- horario.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mi Horario</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+  <nav class="bg-blue-700 text-white p-4 shadow-md">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <h1 class="text-xl font-bold">🕒 Coberturas Docentes</h1>
+      <ul class="flex gap-4 text-sm">
+        <li><a href="index.html" class="hover:underline">Inicio</a></li>
+        <li><a href="registro.html" class="hover:underline">Registro</a></li>
+        <li><a href="login.html" class="hover:underline">Login</a></li>
+        <li><a href="horario.html" class="hover:underline text-yellow-300">Horario</a></li>
+        <li><a href="alertas.html" class="hover:underline">Alertas</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="flex-grow p-6">
+    <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+      <h1 class="text-2xl font-bold text-center text-blue-700 mb-6">📚 Consultar Mi Horario</h1>
+
+      <form id="form-dni" class="flex flex-col md:flex-row gap-4 justify-center items-center mb-6">
+        <input type="text" id="dni" placeholder="Ingresá tu DNI" required class="p-2 border rounded w-full md:w-1/2" />
+        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Ver horario</button>
+      </form>
+
+      <div id="resultado" class="overflow-x-auto"></div>
+    </div>
+  </main>
+
+  <script>
+    document.getElementById('form-dni').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const dni = document.getElementById('dni').value;
+      const res = await fetch(`http://localhost:3001/horario/${dni}`);
+      const data = await res.json();
+
+      const div = document.getElementById('resultado');
+      if (data.error) {
+        div.innerHTML = `<p class='text-red-600 font-semibold text-center'>❌ ${data.error}</p>`;
+        return;
+      }
+
+      if (data.horarios.length === 0) {
+        div.innerHTML = `<p class='text-yellow-600 font-semibold text-center'>No tenés horas asignadas todavía.</p>`;
+        return;
+      }
+
+      let tabla = `
+        <table class="w-full table-auto border-collapse text-sm">
+          <thead class="bg-blue-100">
+            <tr>
+              <th class="p-2 border">Día</th>
+              <th class="p-2 border">Hora</th>
+              <th class="p-2 border">Curso</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      data.horarios.forEach(h => {
+        tabla += `
+          <tr class="hover:bg-gray-100">
+            <td class="p-2 border">${h.dia}</td>
+            <td class="p-2 border">${h.hora}</td>
+            <td class="p-2 border">${h.curso}</td>
+          </tr>
+        `;
+      });
+
+      tabla += '</tbody></table>';
+      div.innerHTML = tabla;
+    });
+  </script>
+</body>
+</html>

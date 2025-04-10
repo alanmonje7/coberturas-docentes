@@ -1,0 +1,58 @@
+<!-- login.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login Docente</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+  <nav class="bg-blue-700 text-white p-4 shadow-md">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <h1 class="text-xl font-bold">🕒 Coberturas Docentes</h1>
+      <ul class="flex gap-4 text-sm">
+        <li><a href="index.html" class="hover:underline">Inicio</a></li>
+        <li><a href="registro.html" class="hover:underline">Registro</a></li>
+        <li><a href="login.html" class="hover:underline">Login</a></li>
+        <li><a href="horario.html" class="hover:underline">Horario</a></li>
+        <li><a href="alertas.html" class="hover:underline">Alertas</a></li>
+        <li><a href="admin.html" class="hover:underline text-yellow-300">Admin</a></li>
+        <li><a href="admin-coberturas.html" class="hover:underline text-yellow-300">Coberturas</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="flex-grow flex items-center justify-center p-6">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+      <h1 class="text-2xl font-bold mb-6 text-center text-blue-700">Ingresar al Portal Docente</h1>
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label for="dni" class="block text-sm font-medium text-gray-700">DNI:</label>
+          <input type="text" id="dni" name="dni" required
+                 class="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:border-blue-500"/>
+        </div>
+        <button type="submit"
+                class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition">Ingresar</button>
+      </form>
+      <pre id="respuesta" class="mt-4 text-sm text-gray-600"></pre>
+    </div>
+  </main>
+
+  <script>
+    const form = document.getElementById('login-form');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const dni = document.getElementById('dni').value;
+
+      const response = await fetch('http://localhost:3001/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dni })
+      });
+
+      const data = await response.json();
+      document.getElementById('respuesta').textContent = JSON.stringify(data, null, 2);
+    });
+  </script>
+</body>
+</html>
